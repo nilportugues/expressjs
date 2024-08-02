@@ -6,9 +6,13 @@
   "author": "Matt Spear",
   "scripts": {
     "dev": "nodemon src/index.ts",
-    "build": "prisma generate; tsc",
+    "build": "yarn migrate:deploy && tsc",
     "start": "prisma generate; node dist/index.js",
-    "migrate:quotes": "ts-node src/data/quotes.ts"
+    "migrate:quotes": "ts-node src/data/quotes.ts",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:status": "prisma migrate status",
+    "generate": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.17.0",
