@@ -11,9 +11,7 @@ cron.schedule('* * * * *', async () => {
               'Content-Type': 'application/json',
           },
       });
-      console.log('Keep alive done');
   } catch (error) {
-      console.error('Error fetching data:', error);
   }
 });
 
