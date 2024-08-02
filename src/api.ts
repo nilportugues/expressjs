@@ -21,9 +21,6 @@ const api = express.Router();
 // Version the api
 app.use('/api/v1', api);
 
-api.get('/hello', (req, res) => {
-  res.status(200).send({ message: 'hello world' });
-});
 
 api.get('/quotes', async (req: any, res) => {
   const page = Number.parseInt(req.query.page) || 1;
@@ -51,3 +48,11 @@ api.get('/quotes', async (req: any, res) => {
     data
   });
 });
+
+// add get,post,delete for UserFavorites
+
+// add get,post for UserPushToken
+
+// add post,get for UserLoginToken
+
+// add get,post,delete for UserKVStore

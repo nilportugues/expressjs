@@ -12,3 +12,30 @@ model Quote {
   quote  String
   author String?
 }
+
+model UserLoginToken {
+  id     Int    @id @default(autoincrement())
+  email String  
+  token String
+  hasBeenUsed Boolean
+}
+
+model UserPushToken {
+  id     Int    @id @default(autoincrement())  
+  deviceOs String
+  deviceToken String
+  userId String?
+}
+
+model UserFavorites {
+  id     Int    @id @default(autoincrement())
+  quoteId  String
+  userId String  
+}
+
+model UserKVStore {
+  id     Int    @id @default(autoincrement())
+  userId String  
+  valueKey  String
+  valueData  String
+}
