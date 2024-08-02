@@ -6,7 +6,7 @@
   "author": "Matt Spear",
   "scripts": {
     "dev": "nodemon src/index.ts",
-    "build": "yarn migrate:deploy && tsc",
+    "build": "yarn generate; yarn migrate:deploy && tsc",
     "start": "node dist/index.js",
     "migrate:quotes": "ts-node src/data/quotes.ts",
     "migrate:dev": "prisma migrate dev",
