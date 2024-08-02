@@ -1,8 +1,23 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import cron from 'node-cron'
 
+cron.schedule('* * * * *', async () => {
+  try {
+      await fetch('https://expressjs-production-01a4.up.railway.app/', {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+      });
+      console.log('Keep alive done');
+  } catch (error) {
+      console.error('Error fetching data:', error);
+  }
+});
+
+const prisma = new PrismaClient();
 export const app = express();
 
 app.use(cors({ origin: true }));
