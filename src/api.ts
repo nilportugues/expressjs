@@ -107,6 +107,11 @@ api.post('/login/otp', async (req, res) => {
   }
 
   //Generate the token
+  //generate a random number of 4 digits
+  const token = Math.floor(1000 + Math.random() * 9000);
+  await prisma.userLoginToken.create({
+    data: { userId: String(user.id), token: String(token), hasBeenUsed: false }
+  })
 
   res.json({ token: '' });
 });
@@ -126,6 +131,10 @@ api.post('/login', async (req, res) => {
   })
 
   if (user && userToken.token == token) {
+    await prisma.userLoginToken.update({
+      where: { id: userToken.id },
+      data: { hasBeenUsed: true }
+    })
     const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: '1y'
     });
