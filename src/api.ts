@@ -127,6 +127,7 @@ api.post('/login', async (req, res) => {
     where: {
       userId: String(user.id),
       token,
+      hasBeenUsed: false
     }
   })
 
