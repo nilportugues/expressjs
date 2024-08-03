@@ -18,11 +18,15 @@ model UserLoginToken {
   userId String  
   token String
   hasBeenUsed Boolean
+
+  @@index([userId, token, hasBeenUsed])
 }
 
 model User {
   id     Int    @id @default(autoincrement())
   email String  @unique
+
+  @@index([email])
 }
 
 model UserPushToken {
@@ -36,6 +40,8 @@ model UserFavorites {
   id     Int    @id @default(autoincrement())
   quoteId  String
   userId String  
+
+  @@index([userId])
 }
 
 model UserKVStore {
@@ -43,4 +49,6 @@ model UserKVStore {
   userId String  
   valueKey  String
   valueData  String
+
+  @@index([userId, valueKey])
 }
