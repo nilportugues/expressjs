@@ -106,14 +106,16 @@ api.post('/login/otp', async (req, res) => {
     user = await prisma.user.create({ data: { email } });
   }
 
-  //Generate the token
-  //generate a random number of 4 digits
+  //Generate the token: generate a random number of 4 digits
   const token = Math.floor(1000 + Math.random() * 9000);
   await prisma.userLoginToken.create({
     data: { userId: String(user.id), token: String(token), hasBeenUsed: false }
   })
 
-  res.json({ token: '' });
+  //Send an email
+  console.log({ token: token })
+
+  res.json({});
 });
 
 api.post('/login', async (req, res) => {
