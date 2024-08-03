@@ -1,7 +1,71 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+
 import cron from 'node-cron';
+import { authenticateJWT } from './middlewares';
+import jwt from 'jsonwebtoken';
+/*
+import { z } from 'zod'
+// Quote schema
+const QuoteSchema = z.object({
+  id: z.number().optional(),
+  quote: z.string().nonempty(),
+  author: z.string().optional(),
+});
+
+type QuoteSchema = z.infer<typeof QuoteSchema>;
+
+// UserLoginToken schema
+const UserLoginTokenSchema = z.object({
+  id: z.number().optional(),
+  email: z.string().email(),
+  token: z.string().nonempty(),
+  hasBeenUsed: z.boolean(),
+});
+
+// UserPushToken schema
+const UserPushTokenSchema = z.object({
+  id: z.number().optional(),
+  deviceOs: z.string().nonempty(),
+  deviceToken: z.string().nonempty(),
+  userId: z.string().optional(),
+});
+
+// UserFavorites schema
+const UserFavoritesSchema = z.object({
+  id: z.number().optional(),
+  quoteId: z.string().nonempty(),
+  userId: z.string().nonempty(),
+});
+
+// UserKVStore schema
+const UserKVStoreSchema = z.object({
+  id: z.number().optional(),
+  userId: z.string().nonempty(),
+  valueKey: z.string().nonempty(),
+  valueData: z.string().nonempty(),
+});
+
+// Middleware
+const validate = (schema) => (req, res, next) => {
+  const result = schema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json(result.error.errors);
+  }
+  req.body = result.data;
+  next();
+};
+
+//Usage eg:
+app.post('/userKVStore', validate(UserKVStoreSchema), async (req, res) => {
+    const userKVStore = await prisma.userKVStore.create({
+        data: req.body,
+    });
+    res.json(userKVStore);
+});
+
+*/
 
 cron.schedule('* * * * *', async () => {
   try {
@@ -33,6 +97,45 @@ const api = express.Router();
 // Version the api
 app.use('/api/v1', api);
 
+api.post('/login/otp', async (req, res) => {
+  const { email } = req.body;
+
+  //Create the user if it doesnt exist
+  let user = await prisma.user.findFirst({ where: { email } });
+  if (!user) {
+    user = await prisma.user.create({ data: { email } });
+  }
+
+  //Generate the token
+
+  res.json({ token: '' });
+});
+
+api.post('/login', async (req, res) => {
+  const { email, token } = req.body;
+
+  const user = await prisma.user.findFirst({
+    where: { email }
+  });
+
+  const userToken = await prisma.userLoginToken.findFirst({
+    where: {
+      userId: String(user.id),
+      token,
+    }
+  })
+
+  if (user && userToken.token == token) {
+    const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: '1y'
+    });
+
+    res.json({ accessToken });
+  } else {
+    res.json({ error: 'Invalid email or token' });
+  }
+});
+
 api.get('/quotes', async (req: any, res) => {
   const page = Number.parseInt(req.query.page) || 1;
   const pageSize = Number.parseInt(req.query.pageSize) || 10;
@@ -61,14 +164,14 @@ api.get('/quotes', async (req: any, res) => {
 });
 
 // UserFavorites endpoints
-api.get('/user/:userId/favorites', async (req, res) => {
+api.get('/user/:userId/favorites', authenticateJWT, async (req, res) => {
   const userFavorites = await prisma.userFavorites.findMany({
     where: { userId: String(req.params.userId) }
   });
   res.json(userFavorites);
 });
 
-api.post('/user/:userId/favorites', async (req, res) => {
+api.post('/user/:userId/favorites', authenticateJWT, async (req, res) => {
   const { quoteId } = req.body;
 
   const userFavorite = await prisma.userFavorites.create({
@@ -77,7 +180,7 @@ api.post('/user/:userId/favorites', async (req, res) => {
   res.json(userFavorite);
 });
 
-api.delete('/user/:userId/favorites/:id', async (req, res) => {
+api.delete('/user/:userId/favorites/:id', authenticateJWT, async (req, res) => {
   const { id } = req.params;
 
   const row = await prisma.userFavorites.findFirst({
@@ -98,7 +201,7 @@ api.delete('/user/:userId/favorites/:id', async (req, res) => {
 });
 
 // UserPushToken endpoints
-api.get('/user/push-token', async (req, res) => {
+api.get('/user/push-token', authenticateJWT, async (req, res) => {
   const userPushTokens = await prisma.userPushToken.findMany({
     where: { userId: String(req.query.userId) }
   });
@@ -113,29 +216,15 @@ api.post('/user/push-token', async (req, res) => {
   res.json(userPushToken);
 });
 
-// UserLoginToken endpoints
-api.get('/auth/login/token', async (req, res) => {
-  const userLoginTokens = await prisma.userLoginToken.findMany();
-  res.json(userLoginTokens);
-});
-
-api.post('/auth/login/token', async (req, res) => {
-  const { email, token, hasBeenUsed } = req.body;
-  const userLoginToken = await prisma.userLoginToken.create({
-    data: { email, token, hasBeenUsed }
-  });
-  res.json(userLoginToken);
-});
-
 // UserKVStore endpoints
-api.get('/user/:userId/key-value', async (req, res) => {
+api.get('/user/:userId/key-value', authenticateJWT, async (req, res) => {
   const userKVStores = await prisma.userKVStore.findMany({
     where: { userId: String(req.params.userId) }
   });
   res.json(userKVStores);
 });
 
-api.post('/user/:userId/key-value', async (req, res) => {
+api.post('/user/:userId/key-value', authenticateJWT, async (req, res) => {
   const { valueKey, valueData } = req.body;
   const { userId } = req.params;
   const userKVStore = await prisma.userKVStore.create({
@@ -144,7 +233,7 @@ api.post('/user/:userId/key-value', async (req, res) => {
   res.json(userKVStore);
 });
 
-api.delete('/user/:userId/key-value/:id', async (req, res) => {
+api.delete('/user/:userId/key-value/:id', authenticateJWT, async (req, res) => {
   const { id, userId } = req.params;
 
   const row = await prisma.userKVStore.findFirst({

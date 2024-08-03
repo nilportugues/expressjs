@@ -15,9 +15,14 @@ model Quote {
 
 model UserLoginToken {
   id     Int    @id @default(autoincrement())
-  email String  
+  userId String  
   token String
   hasBeenUsed Boolean
+}
+
+model User {
+  id     Int    @id @default(autoincrement())
+  email String  @unique
 }
 
 model UserPushToken {
