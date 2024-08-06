@@ -228,6 +228,20 @@ api.post('/user/push-token', async (req, res) => {
   res.json(userPushToken);
 });
 
+
+api.delete('/user/push-token', async (req, res) => {
+  const { deviceOs, deviceToken, userId } = req.body;
+  const userPushToken = await prisma.userPushToken.delete({
+    where: {
+      id: await prisma.userPushToken.findFirst({
+        where: { deviceOs, deviceToken, userId: userId ?? '' }
+      }).then(r => r.id)
+    }
+  });
+  res.json(userPushToken);
+});
+
+
 // UserKVStore endpoints
 api.get('/user/:userId/key-value', authenticateJWT, async (req, res) => {
   const userKVStores = await prisma.userKVStore.findMany({
