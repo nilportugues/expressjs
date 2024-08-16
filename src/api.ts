@@ -97,6 +97,85 @@ const api = express.Router();
 // Version the api
 app.use('/api/v1', api);
 
+/*
+
+// Generate JWTs and Refresh Tokens
+api.post('/login', async (req, res) => {
+  const { email, token } = req.body;
+
+  const userLoginToken = await prisma.userLoginToken.findFirst({
+    where: { email, token, hasBeenUsed: false }
+  });
+
+  if (userLoginToken) {
+    await prisma.userLoginToken.update({
+      where: { id: userLoginToken.id },
+      data: { hasBeenUsed: true }
+    });
+
+    const accessToken = jwt.sign({ userId: userLoginToken.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ userId: userLoginToken.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({ accessToken, refreshToken });
+  } else {
+    res.status(401).send('Email or token incorrect, or token has already been used');
+  }
+});
+
+// Refresh Access Token
+api.post('/refreshToken', (req, res) => {
+  const { refreshToken } = req.body;
+
+  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+
+    const newAccessToken = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    res.json({ accessToken: newAccessToken });
+  });
+});
+
+// Function to log in and get tokens
+const login = async (email, token) => {
+  try {
+    const response = await axios.post(`${API_URL}/login`, { email, token });
+    const { accessToken, refreshToken } = response.data;
+    console.log('Access Token:', accessToken);
+    console.log('Refresh Token:', refreshToken);
+    return { accessToken, refreshToken };
+  } catch (error) {
+    console.error('Login error:', error);
+  }
+};
+
+// Function to refresh the access token
+const refreshAccessToken = async (refreshToken) => {
+  try {
+    const response = await axios.post(`${API_URL}/refreshToken`, { refreshToken });
+    const { accessToken } = response.data;
+    console.log('New Access Token:', accessToken);
+    return accessToken;
+  } catch (error) {
+    console.error('Refresh token error:', error);
+  }
+};
+
+
+// Example usage
+(async () => {
+  const { accessToken, refreshToken } = await login('user@example.com', 'your_login_token');
+
+  // Fetch user favorites
+  await fetchUserFavorites(accessToken);
+
+  // Simulate token expiration and refresh
+  const newAccessToken = await refreshAccessToken(refreshToken);
+  await fetchUserFavorites(newAccessToken);
+})();
+
+*/
+
+
+
 api.post('/login/otp', async (req, res) => {
   const { email } = req.body;
 
